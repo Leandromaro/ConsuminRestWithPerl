@@ -1,2 +1,9 @@
 # ConsumingRestWithPerl
-I've made a tinny script just for learning how to consume a rest ws and how to access it.
+
+## Synopsis
+
+This project was made only for training how to consume a REST-WS using perl. It also has a method to access the answer from the services as a hash structure
+
+
+
+
