@@ -1,4 +1,5 @@
 #!/usr/bin/perl
+package esculturas.pm
 
 use LWP::Simple;                # From CPAN
 use JSON qw( decode_json );     # From CPAN
@@ -85,3 +86,5 @@ sub get_auth {
 	return $ret;
 
 }
+
+1;
