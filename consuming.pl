@@ -6,13 +6,15 @@ use Data::Dumper;               # Perl core module
 use Moose;
 use JSON qw/decode_json/;
 
-my $client = ClientSculpture->new(name=>"Alberto");
+my $client = ClientSculpture->new(name=>"alberto");
 my %clients = $client->request_author(); 
 
-#my $json = get($client->request_author());
-#print $client;
-#my $decoded_json = decode_json( $json );
-# Print Json Complete
-foreach my $key (keys %clients){
-    print "$key\n";
+	if (%clients){
+		# Print Json Complete
+		foreach my $key (keys %clients){
+			print "The author exits with this name: $key\n";
+		}
+	}else{
+		print "There isn't author with that name \n";
+
 }

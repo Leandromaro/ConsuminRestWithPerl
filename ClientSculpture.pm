@@ -5,17 +5,8 @@ use HTTP::Tiny;
 use Time::HiRes qw/sleep/;
 use JSON qw/decode_json/;
 use Moose;
-#
-#my $server = 'http://resistenciarte.org/api/v1/';
-#my $ping_endpoint = 'node?parameters[type]=autores';
-#my $url = $server.$ping_endpoint;
-#my $headers = { accept => 'application/json' };
 
-#my $response = rest_request($url, $headers);
-#my $status = ($response->{ping}) ? 'up' : 'down';
-#print "Service is ${status}\n";
 has name=> (is=>'rw' , isa => 'Str');
-
 
 sub request_author {
         my $self= shift;
@@ -27,20 +18,20 @@ sub request_author {
         my $attempts //= 0;
         my $http = HTTP::Tiny->new();
         my $response = $http->get($url, {headers => $headers});
+        
         if($response->{success}) {
             my $content = $response->{content};
             my $json = decode_json($content);
-
-                my $name = $self->name;
+            	#iterates over the $json
+	            my $name = $self->name;
                 foreach my $item( @$json ) {
                     # fields are in $item->{Year}, $item->{Quarter}, etc.
-                    if ($item->{title}=~ /$name/) {
+                    if ($item->{title}=~ /(?i)$name(?i)/) {
                         return $item->{title};
-
                     }
                 }
-
         }
+        
         $attempts++;
         my $reason = $response->{reason};
           if($attempts > 3) {
@@ -54,7 +45,6 @@ sub request_author {
     sleep($sleep_time);
     return rest_request($url, $headers, $attempts);
   }
-
   die "Cannot do request because of HTTP reason: '${reason}' (${response_code})";
 }
 1;
