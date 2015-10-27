@@ -32,20 +32,17 @@ sub get_scult_prox{
 					'location' => $item->{field_ubicacion}{und}[0]{value},
 					'author_id' => $authId,
 					'author' => $auth;
-
-		my %temp = {$count => %sal};
 		}
-
-		
-
-
+		my %temp = {$count => %sal};
 	}
+ 	$ret = JSON->new->utf8->space_after->encode(%temp);
 
+ 	return $ret;
 }
 
 sub get_auth_scul {
 	#parametros
-	my ($id_esc) = @_;field_ubicacion
+	my ($id_esc) = @_;
 
 	my $url = "http://resistenciarte.org/api/v1/node/$id_esc":
 
