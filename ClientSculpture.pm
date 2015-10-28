@@ -14,7 +14,6 @@ sub request_author {
         my $ping_endpoint = 'node?parameters[type]=autores';
         my $url = $server.$ping_endpoint;
         my $headers = { accept => 'application/json' };
-        #my ($url, $headers, $attempts) = @_;
         my $attempts //= 0;
         my $http = HTTP::Tiny->new();
         my $response = $http->get($url, {headers => $headers});
@@ -47,4 +46,39 @@ sub request_author {
   }
   die "Cannot do request because of HTTP reason: '${reason}' (${response_code})";
 }
+
+sub request_weather {
+        
+        my $url = 'https://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20weather.forecast%20where%20woeid%20in%20(select%20woeid%20from%20geo.places(1)%20where%20text%3D%22San%20Fernando%2C%20CHO%2C%20Argentina%22)&format=json&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys';
+        my $headers = { accept => 'application/json' };
+        my $attempts //= 0;
+        my $http = HTTP::Tiny->new();
+        my $response = $http->get($url, {headers => $headers});
+        
+        
+        if($response->{success}) {
+            my $content = $response->{content};
+            my $json = decode_json($content);
+            return $json->{query}{results}{channel}{item}{condition}{temp};
+            #print $json->{query}{results}{channel}{item}{condition}{temp},
+    		#"\n";
+	        }
+        
+        $attempts++;
+        my $reason = $response->{reason};
+          if($attempts > 3) {
+            warn 'Failure with request '.$reason;
+            die "Attempted to submit the URL $url more than 3 times without success";
+          }
+        my $response_code = $response->{status};
+	  # we were rate limited
+	  if($response_code == 429) {
+	    my $sleep_time = $response->{headers}->{'retry-after'};
+	    sleep($sleep_time);
+	    return rest_request($url, $headers, $attempts);
+	  }
+	  die "Cannot do request because of HTTP reason: '${reason}' (${response_code})";
+}
+
+
 1;
