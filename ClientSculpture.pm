@@ -7,8 +7,19 @@ use Time::HiRes qw/sleep/;
 use JSON qw/decode_json/;
 use Moose;
 
+##ATTRIBUTES
 has name=> (is=>'rw' , isa => 'Str');
 has id=> (is=>'rw' , isa => 'Str');
+has weather=> (is=>'ro', isa=>'HashRef');
+
+##CONSTRUCTOR
+sub BUILD {
+	my $self = shift;
+	my $name = $self->name;
+	my $id = $self->id;
+	my $weather = $self->weather;
+		$weather = request_weather();
+}
 
 sub request_author {
         my $self= shift;
@@ -49,6 +60,7 @@ sub request_author {
 }
 
 sub request_weather {
+	my $self = shift;
         my $url = 'https://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20weather.forecast%20where%20woeid%20in%20(select%20woeid%20from%20geo.places(1)%20where%20text%3D%22San%20Fernando%2C%20CHO%2C%20Argentina%22)&format=json&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys';
         my $headers = { accept => 'application/json' };
         my $attempts //= 0;
