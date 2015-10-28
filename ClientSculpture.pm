@@ -1,3 +1,4 @@
+#!/usr/bin/perl
 package ClientSculpture;
 use strict;
 use warnings;
@@ -7,6 +8,7 @@ use JSON qw/decode_json/;
 use Moose;
 
 has name=> (is=>'rw' , isa => 'Str');
+has id=> (is=>'rw' , isa => 'Str');
 
 sub request_author {
         my $self= shift;
@@ -44,22 +46,19 @@ sub request_author {
     sleep($sleep_time);
     return rest_request($url, $headers, $attempts);
   }
-  die "Cannot do request because of HTTP reason: '${reason}' (${response_code})";
 }
 
 sub request_weather {
-        
         my $url = 'https://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20weather.forecast%20where%20woeid%20in%20(select%20woeid%20from%20geo.places(1)%20where%20text%3D%22San%20Fernando%2C%20CHO%2C%20Argentina%22)&format=json&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys';
         my $headers = { accept => 'application/json' };
         my $attempts //= 0;
         my $http = HTTP::Tiny->new();
         my $response = $http->get($url, {headers => $headers});
-        
-        
+
         if($response->{success}) {
             my $content = $response->{content};
             my $json = decode_json($content);
-            return $json->{query}{results}{channel}{item}{condition}{temp};
+            return $json->{query}{results}{channel}{item}{condition};
         }
         
         $attempts++;
@@ -75,13 +74,14 @@ sub request_weather {
 	    sleep($sleep_time);
 	    return rest_request($url, $headers, $attempts);
 	  }
-	  die "Cannot do request because of HTTP reason: '${reason}' (${response_code})";
 }
 
 sub request_image {
-        my $id= shift;
+        my $self= shift;
         my $server = 'http://resistenciarte.org/api/v1/file/';
-        my $url = $server.$id;
+		my $id = $self->id;
+		my $url = $server.$id;
+        
         my $headers = { accept => 'application/json' };
         my $attempts //= 0;
         my $http = HTTP::Tiny->new();
@@ -90,7 +90,8 @@ sub request_image {
         if($response->{success}) {
             my $content = $response->{content};
             my $json = decode_json($content);
-            print $json->{uri_full};            
+            #print "$_ $json{$_}\n" for (keys %json);
+            print $json->{uri_full},"\n";
             #return $json->{uri_full};
         }
         
@@ -107,8 +108,6 @@ sub request_image {
     sleep($sleep_time);
     return rest_request($url, $headers, $attempts);
   }
-  die "Cannot do request because of HTTP reason: '${reason}' (${response_code})";
 }
-
 
 1;
