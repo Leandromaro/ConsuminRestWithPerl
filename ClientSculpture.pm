@@ -60,9 +60,7 @@ sub request_weather {
             my $content = $response->{content};
             my $json = decode_json($content);
             return $json->{query}{results}{channel}{item}{condition}{temp};
-            #print $json->{query}{results}{channel}{item}{condition}{temp},
-    		#"\n";
-	        }
+        }
         
         $attempts++;
         my $reason = $response->{reason};
