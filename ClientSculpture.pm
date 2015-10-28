@@ -78,5 +78,37 @@ sub request_weather {
 	  die "Cannot do request because of HTTP reason: '${reason}' (${response_code})";
 }
 
+sub request_image {
+        my $id= shift;
+        my $server = 'http://resistenciarte.org/api/v1/file/';
+        my $url = $server.$id;
+        my $headers = { accept => 'application/json' };
+        my $attempts //= 0;
+        my $http = HTTP::Tiny->new();
+        my $response = $http->get($url, {headers => $headers});
+        
+        if($response->{success}) {
+            my $content = $response->{content};
+            my $json = decode_json($content);
+            print $json->{uri_full};            
+            #return $json->{uri_full};
+        }
+        
+        $attempts++;
+        my $reason = $response->{reason};
+          if($attempts > 3) {
+            warn 'Failure with request '.$reason;
+            die "Attempted to submit the URL $url more than 3 times without success";
+          }
+        my $response_code = $response->{status};
+  # we were rate limited
+  if($response_code == 429) {
+    my $sleep_time = $response->{headers}->{'retry-after'};
+    sleep($sleep_time);
+    return rest_request($url, $headers, $attempts);
+  }
+  die "Cannot do request because of HTTP reason: '${reason}' (${response_code})";
+}
+
 
 1;
