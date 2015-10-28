@@ -21,6 +21,13 @@ sub BUILD {
 		$weather = request_weather();
 }
 
+##getWeather
+sub getWeather {
+	my $self = shift;
+	return $self->weather;
+}
+	
+
 sub request_author {
         my $self= shift;
         my $server = 'http://resistenciarte.org/api/v1/';
