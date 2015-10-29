@@ -10,6 +10,8 @@ use Moose;
 ##ATTRIBUTES
 has name=> (is=>'rw' , isa => 'Str');
 has id=> (is=>'rw' , isa => 'Str');
+has lat=> (is=>'rw' , isa => 'Str');
+has long=> (is=>'rw' , isa => 'Str');
 has weather=> (is=>'ro', isa=>'HashRef');
 
 ##CONSTRUCTOR
@@ -128,42 +130,5 @@ sub request_image {
     return rest_request($url, $headers, $attempts);
   }
 }
-
-##GIVES NEARBY SCULPTURES
-sub get_scult_prox{
-        # paramatros
-        my $self = shift;
-        my ($lat, $long)=@_;
-
-        my $ret = "undef";
-
-        my %temp;
-
-        my $url = "http://http://resistenciarte.org/api/v1/closest_nodes_by_coord?lat=$lat &lon= $long";
-
-
-        my $json = get ($url);
-        die "Could not get $url!" unless defined $json;
-
-        my $decoded_json = decode_json($json);
-        my $count = 0;
-
-        foreach my $item (@$decoded_json){
-                my $authId = decode_jason(get_auth_escul($item->{nid}));
-                my $auth = decode_jason(get_auth($authId));
-                                my %sal = { 'sculture' => $item->{node_title},
-                                        'distance' => $item ->{distance},
-                                        'location' => $item->{field_ubicacion}{und}[0]{value},
-                                        'author_id' => $authId,
-                                        'author' => $auth,
-                };
-                 %temp = {$count => %sal};
-        }
-        $ret = JSON->new->utf8->space_after->encode(%temp);
-
-        return $ret;
-}
-
-
 
 1;
