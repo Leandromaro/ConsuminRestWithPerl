@@ -25,7 +25,7 @@ sub get_scult_prox{
 
 	foreach my $item (@$decoded_json){
 		my $authId = decode_jason(get_auth_escul($item->{nid}));
-		my $auth = decode_jason(get_auth($authId));
+		my $auth = decode_jason(get_auth_id($authId));
 
 		my %sal = { 'sculture' => $item->{node_title},
 					'distance' => $item ->{distance},
@@ -60,7 +60,7 @@ sub get_auth_scul {
 
 }
 
-sub get_auth {
+sub get_auth_id {
 	#parametros
 	my $id = @_;
 	my $ret = "undef"
