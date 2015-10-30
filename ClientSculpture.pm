@@ -112,8 +112,8 @@ sub request_image {
             my $content = $response->{content};
             my $json = decode_json($content);
             #print "$_ $json{$_}\n" for (keys %json);
-            print $json->{uri_full},"\n";
-            #return $json->{uri_full};
+            #print $json->{uri_full},"\n";
+            return $json->{uri_full};
         }
         
         $attempts++;
