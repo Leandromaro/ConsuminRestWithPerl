@@ -1,4 +1,3 @@
-
 #!/usr/bin/perl
 package ClientSculpture;
 use strict;
@@ -22,8 +21,8 @@ sub BUILD {
 	my $self = shift;
 	my $name = $self->name;
 	my $id = $self->id;
-    my authorName = $self-> authorName;
-    my authorId -> $self-> authorId;
+    my $authorName = $self-> authorName;
+    my $authorId -> $self-> authorId;
 	my $weather = $self->weather;
 		$weather = request_weather();
 }
@@ -138,6 +137,7 @@ sub request_image {
 sub request_scult_prox{
 
     my ($self,$lat, $long)=@_;
+    my $json;
 
     my $url = "http://resistenciarte.org/api/v1/closest_nodes_by_coord?lat=".$lat."&lon=".$long;
     
@@ -149,9 +149,7 @@ sub request_scult_prox{
     if($response->{success}) {
         my $content = $response->{content};
         my $json = decode_json($content);
-        #print "$_ $json{$_}\n" for (keys %json);
-        print $json->{uri_full},"\n";
-        #return $json->{uri_full};
+        return $json;
     }
     
     $attempts++;
@@ -170,10 +168,11 @@ sub request_scult_prox{
     }
 
     my $count = 0;
+    my %temp;
 
-    foreach my $item (@$response){
+    foreach my $item (@$json){
         my $authId = decode_json(request_auth_scul($item->{nid}));
-        my $auth = decode_json(request_auth_id($authorId));
+        my $auth = decode_json(request_auth_id($authId));
         my $image = request_image($item->{nid});
 
 
@@ -196,13 +195,10 @@ sub request_auth_scul {
     #print "here 2";
     #parametros
     my ($self, $id_esc) = @_;
+    my $json;
 
     my $url = "http://resistenciarte.org/api/v1/node/$id_esc";
 
-    my $self= shift;
-        my $server = 'http://resistenciarte.org/api/v1/file/';
-        my $id = $self->id;
-        my $url = $server.$id;
         
         my $headers = { accept => 'application/json' };
         my $attempts //= 0;
@@ -212,9 +208,7 @@ sub request_auth_scul {
         if($response->{success}) {
             my $content = $response->{content};
             my $json = decode_json($content);
-            #print "$_ $json{$_}\n" for (keys %json);
-            print $json->{uri_full},"\n";
-            #return $json->{uri_full};
+            return $json;
         }
         
         $attempts++;
@@ -231,7 +225,7 @@ sub request_auth_scul {
     return rest_request($url, $headers, $attempts);
   }
 
-    my $ret = $$response{field_autor}{und}[0]{target_id};
+    my $ret = $$json{field_autor}{und}[0]{target_id};
 
 
     return $ret;
@@ -244,13 +238,11 @@ sub request_auth_id {
     #parametros
     my ($self,$id) = @_;
     my $ret = "undef";
+    my $json;
 
     my $url = "http://resistenciarte.org/api/v1/node?parameters[type]=autores";
 
-    my $self= shift;
-        my $server = 'http://resistenciarte.org/api/v1/file/';
-        my $id = $self->id;
-        my $url = $server.$id;
+        
         
         my $headers = { accept => 'application/json' };
         my $attempts //= 0;
@@ -260,9 +252,7 @@ sub request_auth_id {
         if($response->{success}) {
             my $content = $response->{content};
             my $json = decode_json($content);
-            #print "$_ $json{$_}\n" for (keys %json);
-            print $json->{uri_full},"\n";
-            #return $json->{uri_full};
+            return $json;
         }
         
         $attempts++;
@@ -279,7 +269,7 @@ sub request_auth_id {
     return rest_request($url, $headers, $attempts);
   }
 
-    foreach my $item (@$response){
+    foreach my $item (@$json){
         if ($id == $item->{nid}){
             $ret = $item->{title};
         }
@@ -292,5 +282,5 @@ sub request_auth_id {
 
 1;
 
-    Status API Training Shop Blog About Pricing 
+    #Status API Training Shop Blog About Pricing 
 
