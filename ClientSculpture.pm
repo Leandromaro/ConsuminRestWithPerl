@@ -1,3 +1,4 @@
+
 #!/usr/bin/perl
 package ClientSculpture;
 use strict;
@@ -13,12 +14,16 @@ has id=> (is=>'rw' , isa => 'Str');
 has lat=> (is=>'rw' , isa => 'Str');
 has long=> (is=>'rw' , isa => 'Str');
 has weather=> (is=>'ro', isa=>'HashRef');
+has authorID=> (is=>'rw', isa=>'Str');
+has authorName=> (is=>'rw', isa=>'Str');
 
 ##CONSTRUCTOR
 sub BUILD {
 	my $self = shift;
 	my $name = $self->name;
 	my $id = $self->id;
+    my authorName = $self-> authorName;
+    my authorId -> $self-> authorId;
 	my $weather = $self->weather;
 		$weather = request_weather();
 }
@@ -112,8 +117,8 @@ sub request_image {
             my $content = $response->{content};
             my $json = decode_json($content);
             #print "$_ $json{$_}\n" for (keys %json);
-            #print $json->{uri_full},"\n";
-            return $json->{uri_full};
+            print $json->{uri_full},"\n";
+            #return $json->{uri_full};
         }
         
         $attempts++;
@@ -130,5 +135,162 @@ sub request_image {
     return rest_request($url, $headers, $attempts);
   }
 }
+sub request_scult_prox{
+
+    my ($self,$lat, $long)=@_;
+
+    my $url = "http://resistenciarte.org/api/v1/closest_nodes_by_coord?lat=".$lat."&lon=".$long;
+    
+    my $headers = { accept => 'application/json' };
+    my $attempts //= 0;
+    my $http = HTTP::Tiny->new();
+    my $response = $http->get($url, {headers => $headers});
+    
+    if($response->{success}) {
+        my $content = $response->{content};
+        my $json = decode_json($content);
+        #print "$_ $json{$_}\n" for (keys %json);
+        print $json->{uri_full},"\n";
+        #return $json->{uri_full};
+    }
+    
+    $attempts++;
+    my $reason = $response->{reason};
+      if($attempts > 3) {
+        warn 'Failure with request '.$reason;
+        die "Attempted to submit the URL $url more than 3 times without success";
+      }
+    my $response_code = $response->{status};
+    
+    # we were rate limited
+    if($response_code == 429) {
+    my $sleep_time = $response->{headers}->{'retry-after'};
+    sleep($sleep_time);
+    return rest_request($url, $headers, $attempts);
+    }
+
+    my $count = 0;
+
+    foreach my $item (@$response){
+        my $authId = decode_json(request_auth_scul($item->{nid}));
+        my $auth = decode_json(request_auth_id($authorId));
+        my $image = request_image($item->{nid});
+
+
+        my %sal = { 'sculture' => $item->{node_title},
+                    'distance' => $item ->{distance},
+                    'location' => $item->{field_ubicacion}{und}[0]{value},
+                    'author_id' => $authId,
+                    'author' => $auth,
+                    'image' => $image
+        };
+        %temp = {$count => %sal};
+    }
+    
+
+    return %temp;
+}
+
+sub request_auth_scul {
+
+    #print "here 2";
+    #parametros
+    my ($self, $id_esc) = @_;
+
+    my $url = "http://resistenciarte.org/api/v1/node/$id_esc";
+
+    my $self= shift;
+        my $server = 'http://resistenciarte.org/api/v1/file/';
+        my $id = $self->id;
+        my $url = $server.$id;
+        
+        my $headers = { accept => 'application/json' };
+        my $attempts //= 0;
+        my $http = HTTP::Tiny->new();
+        my $response = $http->get($url, {headers => $headers});
+        
+        if($response->{success}) {
+            my $content = $response->{content};
+            my $json = decode_json($content);
+            #print "$_ $json{$_}\n" for (keys %json);
+            print $json->{uri_full},"\n";
+            #return $json->{uri_full};
+        }
+        
+        $attempts++;
+        my $reason = $response->{reason};
+          if($attempts > 3) {
+            warn 'Failure with request '.$reason;
+            die "Attempted to submit the URL $url more than 3 times without success";
+          }
+        my $response_code = $response->{status};
+  # we were rate limited
+  if($response_code == 429) {
+    my $sleep_time = $response->{headers}->{'retry-after'};
+    sleep($sleep_time);
+    return rest_request($url, $headers, $attempts);
+  }
+
+    my $ret = $$response{field_autor}{und}[0]{target_id};
+
+
+    return $ret;
+
+}
+
+sub request_auth_id {
+
+    print "here 3";
+    #parametros
+    my ($self,$id) = @_;
+    my $ret = "undef";
+
+    my $url = "http://resistenciarte.org/api/v1/node?parameters[type]=autores";
+
+    my $self= shift;
+        my $server = 'http://resistenciarte.org/api/v1/file/';
+        my $id = $self->id;
+        my $url = $server.$id;
+        
+        my $headers = { accept => 'application/json' };
+        my $attempts //= 0;
+        my $http = HTTP::Tiny->new();
+        my $response = $http->get($url, {headers => $headers});
+        
+        if($response->{success}) {
+            my $content = $response->{content};
+            my $json = decode_json($content);
+            #print "$_ $json{$_}\n" for (keys %json);
+            print $json->{uri_full},"\n";
+            #return $json->{uri_full};
+        }
+        
+        $attempts++;
+        my $reason = $response->{reason};
+          if($attempts > 3) {
+            warn 'Failure with request '.$reason;
+            die "Attempted to submit the URL $url more than 3 times without success";
+          }
+        my $response_code = $response->{status};
+  # we were rate limited
+  if($response_code == 429) {
+    my $sleep_time = $response->{headers}->{'retry-after'};
+    sleep($sleep_time);
+    return rest_request($url, $headers, $attempts);
+  }
+
+    foreach my $item (@$response){
+        if ($id == $item->{nid}){
+            $ret = $item->{title};
+        }
+    }
+
+    
+    return $ret;
+
+}
 
 1;
+
+    Status API Training Shop Blog About Pricing 
+
