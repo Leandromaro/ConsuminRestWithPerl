@@ -2,6 +2,7 @@
 package ClientSculpture;
 use strict;
 use warnings;
+use Data::Dumper;
 use HTTP::Tiny;
 use Time::HiRes qw/sleep/;
 use JSON qw/decode_json/;
@@ -186,7 +187,7 @@ sub request_scult_prox{
         %temp = {$count => %sal};
     }
     
-
+    print Dumper(%temp);
     return %temp;
 }
 
@@ -227,7 +228,7 @@ sub request_auth_scul {
 
     my $ret = $$json{field_autor}{und}[0]{target_id};
 
-
+    print Dumper($ret);
     return $ret;
 
 }
@@ -275,7 +276,7 @@ sub request_auth_id {
         }
     }
 
-    
+    print Dumper($ret);
     return $ret;
 
 }
