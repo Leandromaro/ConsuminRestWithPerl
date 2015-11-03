@@ -193,7 +193,6 @@ sub request_scult_prox{
 
 sub request_auth_scul {
 
-    #print "here 2";
     #parametros
     my ($self, $id_esc) = @_;
     my $json;
@@ -201,7 +200,7 @@ sub request_auth_scul {
     my $url = "http://resistenciarte.org/api/v1/node/$id_esc";
 
         
-        my $headers = { accept => 'application/json' };
+    my $headers = { accept => 'application/json' };
         my $attempts //= 0;
         my $http = HTTP::Tiny->new();
         my $response = $http->get($url, {headers => $headers});
@@ -226,16 +225,12 @@ sub request_auth_scul {
     return rest_request($url, $headers, $attempts);
   }
 
-    my $ret = $$json{field_autor}{und}[0]{target_id};
-
-    print Dumper($ret);
     return $ret;
 
 }
 
 sub request_auth_id {
 
-    print "here 3";
     #parametros
     my ($self,$id) = @_;
     my $ret = "undef";
@@ -276,7 +271,6 @@ sub request_auth_id {
         }
     }
 
-    print Dumper($ret);
     return $ret;
 
 }
