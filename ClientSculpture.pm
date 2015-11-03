@@ -16,6 +16,7 @@ has long=> (is=>'rw' , isa => 'Str');
 has weather=> (is=>'ro', isa=>'HashRef');
 has authorID=> (is=>'rw', isa=>'Str');
 has authorName=> (is=>'rw', isa=>'Str');
+#has authorsjson=> (is=>'rw', isa=>'HashRef');
 
 ##CONSTRUCTOR
 sub BUILD {
@@ -72,9 +73,11 @@ sub request_author {
     return rest_request($url, $headers, $attempts);
   }
 }
+
+
 ##RETURNS THE LOCAL WEATHER
 sub request_weather {
-	my $self = shift;
+    my $self = shift;
         my $url = 'https://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20weather.forecast%20where%20woeid%20in%20(select%20woeid%20from%20geo.places(1)%20where%20text%3D%22San%20Fernando%2C%20CHO%2C%20Argentina%22)&format=json&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys';
         my $headers = { accept => 'application/json' };
         my $attempts //= 0;
@@ -94,7 +97,7 @@ sub request_weather {
                 "texto" => $text,
              );
                 return %weather;
-	     }
+         }
 
         
         $attempts++;
@@ -104,12 +107,12 @@ sub request_weather {
             die "Attempted to submit the URL $url more than 3 times without success";
           }
         my $response_code = $response->{status};
-	  # we were rate limited
-	  if($response_code == 429) {
-	    my $sleep_time = $response->{headers}->{'retry-after'};
-	    sleep($sleep_time);
-	    return rest_request($url, $headers, $attempts);
-	  }
+      # we were rate limited
+      if($response_code == 429) {
+        my $sleep_time = $response->{headers}->{'retry-after'};
+        sleep($sleep_time);
+        return rest_request($url, $headers, $attempts);
+      }
 }
 
 sub request_image {
@@ -149,6 +152,7 @@ sub request_scult_prox{
 
     my ($self,$lat, $long)=@_;
     my $json;
+    #my $authId, $auth;
 
     my $url = "http://resistenciarte.org/api/v1/closest_nodes_by_coord?lat=".$lat."&lon=".$long;
     
@@ -246,38 +250,39 @@ sub request_auth_id {
 
     #parametros
     my ($self,$id) = @_;
+    my $authorsjson;# =$self->authorsjson;
     my $ret;
     my $json;
 
-    my $url = "http://resistenciarte.org/api/v1/node?parameters[type]=autores";   
-    my $headers = { accept => 'application/json' };
-    my $attempts //= 0;
-    my $http = HTTP::Tiny->new();
-    my $response = $http->get($url, {headers => $headers});
+    #if (!$authorsjson){
+        my $url = "http://resistenciarte.org/api/v1/node?parameters[type]=autores";   
+        my $headers = { accept => 'application/json' };
+        my $attempts //= 0;
+        my $http = HTTP::Tiny->new();
+        my $response = $http->get($url, {headers => $headers});
+        if($response->{success}) {
+            my $content = $response->{content};
+            $authorsjson = decode_json($content);
+            #$self->authorsjson = $authorsjson;
+        }
     
-    if($response->{success}) {
-        my $content = $response->{content};
-        $json = decode_json($content);
-        #return $json;
-    }
     
-    $attempts++;
-    my $reason = $response->{reason};
-      if($attempts > 3) {
-        warn 'Failure with request '.$reason;
-        die "Attempted to submit the URL $url more than 3 times without success";
-      }
-    my $response_code = $response->{status};
-  # we were rate limited
-    if($response_code == 429) {
-        my $sleep_time = $response->{headers}->{'retry-after'};
-        sleep($sleep_time);
-        #return rest_request($url, $headers, $attempts);
-    }
+        $attempts++;
+        my $reason = $response->{reason};
+          if($attempts > 3) {
+            warn 'Failure with request '.$reason;
+            die "Attempted to submit the URL $url more than 3 times without success";
+          }
+        my $response_code = $response->{status};
+      # we were rate limited
+        if($response_code == 429) {
+            my $sleep_time = $response->{headers}->{'retry-after'};
+            sleep($sleep_time);
+            #return rest_request($url, $headers, $attempts);
+        }
+    #}
 
-    foreach my $item (@$json){
-        print $item->{nid};
-        print "\n";
+    foreach my $item (@$authorsjson){
         if ($id == $item->{nid}){
             $ret = $item->{title};
         }
