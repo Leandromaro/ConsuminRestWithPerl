@@ -20,13 +20,7 @@ has authorName=> (is=>'rw', isa=>'Str');
 
 ##CONSTRUCTOR
 sub BUILD {
-	my $self = shift;
-	my $name = $self->name;
-	my $id = $self->id;
-    my $authorName = $self-> authorName;
-    my $authorId -> $self-> authorId;
-	my $weather = $self->weather;
-		$weather = request_weather();
+	my $weather =request_weather();
 }
 
 ##getWeather
