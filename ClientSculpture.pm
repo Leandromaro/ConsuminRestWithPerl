@@ -72,7 +72,7 @@ sub request_author {
     return rest_request($url, $headers, $attempts);
   }
 }
-
+##RETURNS THE LOCAL WEATHER
 sub request_weather {
 	my $self = shift;
         my $url = 'https://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20weather.forecast%20where%20woeid%20in%20(select%20woeid%20from%20geo.places(1)%20where%20text%3D%22San%20Fernando%2C%20CHO%2C%20Argentina%22)&format=json&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys';
@@ -81,11 +81,21 @@ sub request_weather {
         my $http = HTTP::Tiny->new();
         my $response = $http->get($url, {headers => $headers});
 
-        if($response->{success}) {
+            if($response->{success}) {
             my $content = $response->{content};
             my $json = decode_json($content);
-            return $json->{query}{results}{channel}{item}{condition};
-        }
+            my $temp = $json->{query}{results}{channel}{item}{condition}{code};
+            my $text = $json->{query}{results}{channel}{item}{condition}{text};
+            my $date = $json->{query}{results}{channel}{item}{condition}{date};
+
+            my %weather = (
+                "date"=>$date,
+                "temperatura" => $temp,
+                "texto" => $text,
+             );
+                return %weather;
+	     }
+
         
         $attempts++;
         my $reason = $response->{reason};
