@@ -1,6 +1,5 @@
 #!/usr/bin/perl
 package ClientSculpture;
-use strict;
 use warnings;
 use Data::Dumper;
 use HTTP::Tiny;
@@ -10,25 +9,23 @@ use Moose;
 
 ##ATTRIBUTES
 has name=> (is=>'rw' , isa => 'Str');
-has id=> (is=>'rw' , isa => 'Str');
 has lat=> (is=>'rw' , isa => 'Str');
 has long=> (is=>'rw' , isa => 'Str');
 has weather=> (is=>'ro', isa=>'HashRef');
 has authorID=> (is=>'rw', isa=>'Str');
 has authorName=> (is=>'rw', isa=>'Str');
-#has authorsjson=> (is=>'rw', isa=>'HashRef');
 
 ##CONSTRUCTOR
 sub BUILD {
-	my $weather =request_weather();
+    my $weather =request_weather();
 }
 
 ##getWeather
 sub getWeather {
-	my $self = shift;
-	return $self->weather;
+    my $self = shift;
+    return $self->weather;
 }
-	
+    
 
 sub request_author {
         my $self= shift;
@@ -43,8 +40,8 @@ sub request_author {
         if($response->{success}) {
             my $content = $response->{content};
             my $json = decode_json($content);
-            	#iterates over the $json
-	            my $name = $self->name;
+                #iterates over the $json
+                my $name = $self->name;
                 foreach my $item( @$json ) {
                     # fields are in $item->{Year}, $item->{Quarter}, etc.
                     if ($item->{title}=~ /(?i)$name(?i)/) {
@@ -110,10 +107,10 @@ sub request_weather {
 }
 
 sub request_image {
-        my $self= shift;
+        my ($self,$id) = @_;
         my $server = 'http://resistenciarte.org/api/v1/file/';
-		my $id = $self->id;
-		my $url = $server.$id;
+        my $json;
+        my $url = $server.$id;
         
         my $headers = { accept => 'application/json' };
         my $attempts //= 0;
@@ -122,9 +119,9 @@ sub request_image {
         
         if($response->{success}) {
             my $content = $response->{content};
-            my $json = decode_json($content);
+            $json = decode_json($content);
             #print "$_ $json{$_}\n" for (keys %json);
-            print $json->{uri_full},"\n";
+            #print $json->{uri_full},"\n";
             #return $json->{uri_full};
         }
         
@@ -141,13 +138,13 @@ sub request_image {
     sleep($sleep_time);
     return rest_request($url, $headers, $attempts);
   }
+  return $json->{uri_full};
 }
 sub request_scult_prox{
 
     my ($self,$lat, $long)=@_;
     my $json;
-    #my $authId, $auth;
-
+    
     my $url = "http://resistenciarte.org/api/v1/closest_nodes_by_coord?lat=".$lat."&lon=".$long;
     
     my $headers = { accept => 'application/json' };
@@ -157,8 +154,8 @@ sub request_scult_prox{
     
     if($response->{success}) {
         my $content = $response->{content};
-        my $json = decode_json($content);
-        #return $json;
+        $json = decode_json($content);
+        
     }
     
     $attempts++;
@@ -178,30 +175,29 @@ sub request_scult_prox{
 
     my $count = 0;
     my %temp;
-
-    foreach my $item (@$json){
-        my $authId = request_auth_scul($item->{nid});
-        my $auth = request_auth_id($authId);
-        my $image = request_image($item->{nid});
-
-
-        my %sal = { 'sculture' => $item->{node_title},
-                    'distance' => $item ->{distance},
-                    'location' => $item->{field_ubicacion}{und}[0]{value},
-                    'author_id' => $authId,
-                    'author' => $auth,
-                    'image' => $image
-        };
-        %temp = {$count => %sal};
-    }
     
-    #rint Dumper(%temp);
-    return %temp;
+    foreach my $item (@$json){
+        my $authId = $self->request_auth_scul($item->{nid});
+        my $auth = $self->request_auth_id($authId);
+        my $image = $self->request_image($item->{nid});
+
+
+        my @sal = ( $item->{node_title},
+                    $item->{distance},
+                    $item->{field_ubicacion}{und}[0]{value},
+                    $authId,
+                    $auth,
+                    $image
+        );
+
+        $temp{"$count"} = \@sal;
+    }
+
+    return \%temp;
 }
 
 sub request_auth_scul {
 
-    #print "here 2";
     #parametros
     my ($self, $id_esc) = @_;
     my $json;
@@ -236,6 +232,7 @@ sub request_auth_scul {
     }
 
     my $ret = $$json{field_autor}{und}[0]{target_id};
+
     return $ret;
 
 }
