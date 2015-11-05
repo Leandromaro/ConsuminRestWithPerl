@@ -1,5 +1,5 @@
 #!/usr/bin/perl
-package ClientSculpture;
+package Requesting;
 
 use warnings; 					#good practice
 use strict;						#good practice
