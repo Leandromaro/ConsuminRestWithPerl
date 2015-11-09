@@ -8,6 +8,15 @@ use Time::HiRes qw/sleep/;
 use JSON qw/decode_json/;
 use Moose;
 
+has parameter=>(is = 'rw', isa => 'Str');
+
+sub BUILD {
+        my $self = shift;
+        my $parameter = $self->parameter;
+        my $server = 'http://resistenciarte.org/api/v1/';
+        my $url = $server.$parameter;
+}
+
 sub request{
     my ($self, $url) = @_;
 	my $headers = { accept => 'application/json' };
