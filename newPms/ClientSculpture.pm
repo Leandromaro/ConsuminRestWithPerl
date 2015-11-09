@@ -15,15 +15,12 @@ has long=> (is=>'rw' , isa => 'Str');
 has authorID=> (is=>'rw', isa=>'Str');
 has authorName=> (is=>'rw', isa=>'Str');
 
-sub BUILD {
-        my $self = shift;
-        my $response = shift;
-}
-
+##DONE
 sub request_author {
         my $self = shift;
-        my $content = $response->{content};
-        my $json = decode_json($content);
+        my $requester = Requesting->new();
+
+        my $json = $requester->request();
         my $name = $self->name;
 
         foreach my $item( @$json ) {
@@ -32,15 +29,17 @@ sub request_author {
                 }
         }
 }
-
+##DONE
 sub request_image {
         my $self= shift;
-        my $content = $response->{content};
-        my $json = decode_json($content);
+        my $id = "/file".$self->id;
+        my $requester = Requesting->new(parameter=>$id);
         my $imageUrl = $json->{uri_full},"\n";
         return $imageUrl;
 
 }
+
+
 
 sub request_scult_prox{
 
