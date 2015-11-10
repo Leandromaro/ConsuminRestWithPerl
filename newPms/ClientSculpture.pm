@@ -8,13 +8,11 @@ use JSON qw/decode_json/;
 use Moose;
 
 ##ATTRIBUTES
-has name=> (is=>'rw' , isa => 'Str');
-has id=> (is=>'rw' , isa => 'Str');
-has lat=> (is=>'rw' , isa => 'Str');
-has long=> (is=>'rw' , isa => 'Str');
-has author_id=> (is=>'rw', isa=>'Str');
-has sculp_id => (is=>'rw' , isa => 'Str');
-has authorName=> (is=>'rw', isa=>'Str');
+has name=> (is=>'rw' , isa => 'Str');           #author name
+has lat=> (is=>'rw' , isa => 'Str');            #latitude
+has long=> (is=>'rw' , isa => 'Str');           #longitude
+has author_id=> (is=>'rw', isa=>'Str');         #author ID
+has sculp_id => (is=>'rw' , isa => 'Str');      ##sculpture ID
 
 
 
@@ -36,8 +34,8 @@ sub request_author {
 sub request_image {
         my $self= shift;
         ##PARAMETERS
-        my $id = "/file".$self->id;
-        my $requester = Requesting->new(parameter=>$id);
+        my $sculp_id = "/file".$self->sculp_id;
+        my $requester = Requesting->new(parameter=>$sculp_id);
         ##REQUEST TO THE SERVER
         my $json = requester->request();
         ##TREATMENT
@@ -65,7 +63,7 @@ sub request_scult_prox{
          foreach my $item (@$json){
                 my $authId = $self->request_auth_scul($item->{nid});
                 my $auth = $self->request_auth_id($authId);
-                my $image = $self->request_image($item->{nid});
+                my $image = $self->request_image($item->{nidau});
         
                 my @sal = ( $item->{node_title},
                           $item->{distance},
