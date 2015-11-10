@@ -38,7 +38,7 @@ sub request_image {
         my $id = "/file".$self->id;
         my $requester = Requesting->new(parameter=>$id);
         ##REQUEST TO THE SERVER
-        my $json = requester->request() 
+        my $json = requester->request();
         ##TREATMENT
         my $imageUrl = $json->{uri_full},"\n";
         return $imageUrl;
@@ -54,7 +54,7 @@ sub request_scult_prox{
         my $long = $self->long;
         my $requester = Requesting->new(parameter=>'closest_nodes_by_coord?lat='.$lat.'&lon='.$long);
         ##REQUEST TO THE SERVER
-        my $response = $requester->request()
+        my $response = $requester->request();
         ##TREATMENT
         my $content = $response->{content};
         my $json = decode_json($content);
