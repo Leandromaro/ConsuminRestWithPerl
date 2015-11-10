@@ -8,7 +8,11 @@ use Time::HiRes qw/sleep/;
 use JSON qw/decode_json/;
 use Moose;
 
-has parameter=>(is = 'rw', isa => 'Str');
+has server => (is=>'rw' , isa=>'Str', default=>'http://resistenciarte.org/api/v1/');
+
+##All authors default parameter
+has parameter=>(is=>'rw', isa=>'Str', default=> 'node?parameters[type]=autores');
+
 
 sub BUILD {
         my $self = shift;
