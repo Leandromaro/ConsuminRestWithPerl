@@ -75,9 +75,9 @@ sub request_scult_prox{
                 );
         
                 $temp{"$count"} = \@sal;
-            }
-            return \%temp;
         }
+            return \%temp;
+}
 
 ##DONE
 sub request_auth_scul {
