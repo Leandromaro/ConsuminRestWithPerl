@@ -37,9 +37,6 @@ sub print {
     # Print menu
     for (;;) {
 
-        # Clear the screen
-        system 'cls';
-
         # Print menu title
         print "========================================\n";
         print "    $title\n";
