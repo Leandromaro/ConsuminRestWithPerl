@@ -12,7 +12,8 @@ has name=> (is=>'rw' , isa => 'Str');
 has id=> (is=>'rw' , isa => 'Str');
 has lat=> (is=>'rw' , isa => 'Str');
 has long=> (is=>'rw' , isa => 'Str');
-has authorID=> (is=>'rw', isa=>'Str');
+has author_id=> (is=>'rw', isa=>'Str');
+has sculp_id => (is=>'rw' , isa => 'Str');
 has authorName=> (is=>'rw', isa=>'Str');
 
 
@@ -80,10 +81,11 @@ sub request_scult_prox{
 }
 
 ##DONE
+##given a sculpture id brings info about that sculpture and the author id
 sub request_auth_scul {
         my $self = shift;
-        my $id_esc = $self->id;
-        my $requester = Requesting->new(parameter=>"node/".$id); 
+        my $sculp_id = $self->sculp_id; 
+        my $requester = Requesting->new(parameter=>"node/".$sculp_id); 
         ##REQUEST TO THE SERVER
         my $content = $requester->request();
         ##TREATMENT
@@ -92,11 +94,12 @@ sub request_auth_scul {
         return $ret;
 
 }
-
+##DONE
+##given an author ID brigns the author name
 sub request_auth_id {
         my $self = shift;
         ##PARAMETERS
-        my $id = $self->idthorID;
+        my $author_id = $self->author_id;
         my $requester = Requesting->new(parameter=>'node?parameters[type]=autores');
         my $ret = "undef";
         ##REQUEST TO THE SERVER
@@ -104,10 +107,11 @@ sub request_auth_id {
         ##TREATMENT
         my $json = decode_json($content);
         foreach my $item (@$json){
-                if ($id == $item->{nid}){
+                if ($author_id == $item->{nid}){
                         $ret = $item->{title};
                 }
         }
         return $ret;
 }
 1;
+
