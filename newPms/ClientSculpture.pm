@@ -39,7 +39,7 @@ sub request_image {
         ##REQUEST TO THE SERVER
         my $json = requester->request();
         ##TREATMENT
-        my $imageUrl = $json->{uri_full},"\n";
+        my $imageUrl = $json->{uri_full};
         return $imageUrl;
 
 }
