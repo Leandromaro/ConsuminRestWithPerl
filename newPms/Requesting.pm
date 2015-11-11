@@ -23,7 +23,7 @@ sub BUILD {
 
 sub request{
     my ($self, $url) = @_;
-	my $headers = { accept => 'application/json' };
+    my $headers = { accept => 'application/json' };
     my $attempts //= 0;						
     my $http = HTTP::Tiny->new();
     my $response = $http->get($url, {headers => $headers});

@@ -32,16 +32,17 @@ sub request_author {
 }
 ##DONE
 sub request_image {
-        my $self= shift;
+        my ($self, $url) = @_;
         ##PARAMETERS
-        my $sculp_id = "/file".$self->sculp_id;
-        my $requester = Requesting->new(parameter=>$sculp_id);
+        my $serviceCall = Requesting->new;
+        my $sculp_id = "file/".$self->sculp_id;
+        my $url = $serviceCall->server;
+        my $url_full = $url.$sculp_id;
         ##REQUEST TO THE SERVER
-        my $json = requester->request();
-        ##TREATMENT
-        my $imageUrl = $json->{uri_full};
-        return $imageUrl;
-
+        my $content = $serviceCall->request("$url_full"); 
+        ## AGREGAR LOGICA PARA IMPRIMIR LA URL_FULL EN CASO DE QUE 
+        ## EL CONTENT NO SEA VACIO
+        print $content;
 }
 
 
