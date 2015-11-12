@@ -7,7 +7,7 @@ use WheatherFront;
 use JSON qw/decode_json/;
 use Data::Dumper;
 use Menu;
-
+use ClientSculpture;
 my $menu1;
 
 # define menu1 choices
@@ -19,8 +19,16 @@ my @menu1_choices = (
                     print Dumper(\%hash),"\n";
                     $menu1->print();
        }},
-    { text => 'Choice2',
-      code => sub { print "I did something else!\n"; }},
+    { text => 'Get Sculpture image from an id',
+      code => sub { 
+                  print "Please insert the id from the Sculpture\n";
+                  my $id = <>;
+                  chomp $id;
+                  my $clientSculpture = ClientSculpture->new(sculp_id=>"$id");
+                  my $url_text=$clientSculpture->request_image();
+                  print $url_text, "\n";
+                  $menu1->print();
+      }},
     { text => 'Go to Menu2',
       code => sub { $menu1->print(); }},
 );

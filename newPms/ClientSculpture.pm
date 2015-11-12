@@ -6,6 +6,7 @@ use HTTP::Tiny;
 use Time::HiRes qw/sleep/;
 use JSON qw/decode_json/;
 use Moose;
+use Try::Tiny;
 
 ##ATTRIBUTES
 has name=> (is=>'rw' , isa => 'Str');           #author name
@@ -36,13 +37,19 @@ sub request_image {
         ##PARAMETERS
         my $serviceCall = Requesting->new;
         my $sculp_id = "file/".$self->sculp_id;
-        my $url = $serviceCall->server;
-        my $url_full = $url.$sculp_id;
+        my $url_server = $serviceCall->server;
+        my $url_full = $url_server.$sculp_id;
         ##REQUEST TO THE SERVER
         my $content = $serviceCall->request("$url_full"); 
-        ## AGREGAR LOGICA PARA IMPRIMIR LA URL_FULL EN CASO DE QUE 
-        ## EL CONTENT NO SEA VACIO
-        print $content;
+        try {
+            my $decoded_json = decode_json($content);         
+            my $decoded_json = decode_json($content); 
+            my $url_image = $decoded_json->{uri_full};
+            return $url_image;
+        } catch {
+            my $anwser = "There is not a sculpture with that id";
+            return $anwser;
+        };
 }
 
 
