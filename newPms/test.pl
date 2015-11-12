@@ -21,12 +21,8 @@ my @menu1_choices = (
        }},
     { text => 'Get Sculpture image from an id',
       code => sub { 
-                  print "Please insert the id from the Sculpture\n";
-                  my $id = <>;
-                  chomp $id;
-                  my $clientSculpture = ClientSculpture->new(sculp_id=>"$id");
-                  my $url_text=$clientSculpture->request_image();
-                  print $url_text, "\n";
+                  my $clientSculpture = ClientSculpture->new;
+                  my %hash = $clientSculpture->all_sculpture();
                   $menu1->print();
       }},
     { text => 'Check if an author exists',
@@ -50,26 +46,6 @@ my @menu1_choices = (
                 my $clientSculpture = ClientSculpture->new(lat=>"$lat", long=>"$long");
                 my %hash = $clientSculpture->request_scult_prox();
                 print Dumper(\%hash)."\n";
-                $menu1->print();
-        }},
-   { text => 'Get an author using sculpture ID',
-        code => sub {
-                print "Insert a valid sculpture ID\n";
-                my $id = <>;
-                chomp ($id);
-                my $clientSculpture= ClientSculpture->new(sculp_id=>"$id");
-                my $ret = $clientSculpture->request_auth_scul();
-                print $ret."\n";
-                $menu1->print();
-        }},
-   { text => 'Get an author name using author ID',
-        code =>sub {
-                print "Insert a valid author ID\n";
-                my $id = <>;
-                chomp ($id);
-                my $clientSculpture = ClientSculpture->new(auth_id=>"$id");
-                my $ret = $clientSculpture->request_auth_id();
-                print $ret."\n";
                 $menu1->print();
         }},
 );

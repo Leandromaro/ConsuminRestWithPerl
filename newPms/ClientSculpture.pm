@@ -158,6 +158,37 @@ sub request_authors {
 }
 
 
+sub all_sculpture{
+    my $self = shift;
+    ##PARAMETERS
+    my $author_id = $self->author_id;
+    
+    my $requester = Requesting->new(parameter=>'node?parameters[type]=escultura');
+    my $url = $requester->server.$requester->parameter;
+    my $ret = "undef";
+    ##REQUEST TO THE SERVER
+    my $content = $requester->request("$url");
+    ##TREATMENT
+    try {
+    my $arrayref = decode_json $content;
+        foreach my $item( @$arrayref ) { 
+            # fields are in $item->{Year}, $item->{Quarter}, etc.
+            
+            $self->sculp_id($item->{nid});
+            
+            my $url_picture= $self->request_image();
+            print "========================================\n";
+            print "Nombre:", $item->{title},"\n";   
+            print "Imagen: $url_picture\n";      
+            print "========================================\n";
+        }  
+    } catch {
+        my $answer = "invalid author ID\n";
+        print $answer;
+    }
+         
+}
+
 
 1;
 
