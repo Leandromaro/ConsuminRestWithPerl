@@ -42,7 +42,6 @@ sub request_image {
         ##REQUEST TO THE SERVER
         my $content = $serviceCall->request("$url_full"); 
         try {
-            my $decoded_json = decode_json($content);         
             my $decoded_json = decode_json($content); 
             my $url_image = $decoded_json->{uri_full};
             return $url_image;
