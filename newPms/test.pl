@@ -19,7 +19,7 @@ my @menu1_choices = (
                     print Dumper(\%hash),"\n";
                     $menu1->print();
        }},
-    { text => 'Get Sculpture image from an id',
+    { text => 'All the Sculpture',
       code => sub { 
                   my $clientSculpture = ClientSculpture->new;
                   my %hash = $clientSculpture->all_sculpture();
