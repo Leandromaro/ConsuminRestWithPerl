@@ -64,7 +64,6 @@ sub print {
             exit 0;
         } else {
             print "Invalid input.\n\n";
-            system 'pause';
         }
     }
 }
