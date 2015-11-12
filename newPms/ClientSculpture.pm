@@ -17,29 +17,6 @@ has sculp_id => (is=>'rw' , isa => 'Str');      ##sculpture ID
 
 
 
-##DONE
-sub request_author {
-        my $self = shift;
-        my $requester = Requesting->new(parameter=>'node?parameters[type]=autores');
-        ##REQUEST TO THE SERVER
-        my $server = $requester->server;
-        my $parameter = $requester->parameter;
-        my $url = $server.$parameter;
-        my $response = $requester->request("$url");
-        try {
-                my $json = decode_json($response);
-                my $name = $self->name;
-                ##TREATMENT
-                foreach my $item( @$json ) {
-                        if ($item->{title}=~ /(?i)$name(?i)/) {
-                                return $item->{title};
-                        }
-                }
-        } catch {
-                my $answer = "the name received doesn't exist or it's misspelled\n";
-                return $answer;
-        }
-}
 
 
 ##DONE
@@ -80,8 +57,8 @@ sub request_scult_prox{
                 my %temp;
 
                 foreach my $item (@$json){
-                        my $authId = $self->request_auth_scul($item->{nid});
-                        my $auth = $self->request_auth_id($authId);
+                        my $authId = "ee";#$self->request_auth_scul($item->{nid});
+                        my $auth = "ffee";#$self->request_auth_id($authId);
                         my $image = $self->request_image($item->{nidau});
 
                         my @sal = ( $item->{node_title},
@@ -115,7 +92,11 @@ sub request_auth_scul {
         try {
                 my $json = decode_json($content);
                 my $ret = $$json{field_autor}{und}[0]{target_id};
-                return $ret;
+                if (!$ret){ 
+                	return "Invalid sculpture ID\n";
+                	}else {
+                		return $ret;
+                	}
         } catch {
                 my $answer = "invalid sculpture ID\n";
                 return $answer;
@@ -127,13 +108,11 @@ sub request_auth_scul {
 ##given an author ID brigns the author name
 sub request_auth_id {
         my $self = shift;
-        ##PARAMETERS
+
+    	##PARAMETERS
         my $author_id = $self->author_id;
-        my $requester = Requesting->new(parameter=>'node?parameters[type]=autores');
-        my $url = $requester->server.$requester->parameter;
-        my $ret = "undef";
-        ##REQUEST TO THE SERVER
-        my $content = $requester->request("$url");
+		my $content = request_authors();
+		my $ret = "invalid author ID\n";
         ##TREATMENT
         try {
                 my $json = decode_json($content);
@@ -144,11 +123,41 @@ sub request_auth_id {
                 }
                 return $ret;
         } catch {
-                my $answer = "invalid author ID\n";
-                return $answer;
+                
+                return $ret;
         }
 
 }
+##DONE
+sub request_author {
+        my $self = shift;
+		my $response = request_authors();
+        try {
+                my $json = decode_json($response);
+                my $name = $self->name;
+                ##TREATMENT
+                foreach my $item( @$json ) {
+                        if ($item->{title}=~ /(?i)$name(?i)/) {
+                                return $item->{title};
+                        }
+                }
+        } catch {
+                my $answer = "the name received doesn't exist or it's misspelled\n";
+                return $answer;
+        }
+}
+
+sub request_authors {
+	my $self = shift;
+	my $requester = Requesting->new(parameter=>'node?parameters[type]=autores');
+	my $server = $requester->server;
+	my $parameter = $requester->parameter;
+	my $url = $server.$parameter;
+	my $response = $requester->request("$url");
+	return $response;
+}
+
+
 
 1;
 
