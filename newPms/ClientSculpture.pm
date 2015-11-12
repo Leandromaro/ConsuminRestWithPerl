@@ -41,6 +41,7 @@ sub request_author {
         }
 }
 
+
 ##DONE
 sub request_image {
         my ($self, $url) = @_;
