@@ -149,12 +149,18 @@ sub request_author {
 
 sub request_authors {
 	my $self = shift;
-	my $requester = Requesting->new(parameter=>'node?parameters[type]=autores');
-	my $server = $requester->server;
-	my $parameter = $requester->parameter;
-	my $url = $server.$parameter;
-	my $response = $requester->request("$url");
-	return $response;
+	if (!(my $authors=get_authors())){
+		my $requester = Requesting->new(parameter=>'node?parameters[type]=autores');
+		my $server = $requester->server;
+		my $parameter = $requester->parameter;
+		my $url = $server.$parameter;
+		my $response = $requester->request("$url");
+		set_authors($response);
+		return $response;
+	} else{
+		my $response = $self->authors;
+		return $response;
+	}
 }
 
 
