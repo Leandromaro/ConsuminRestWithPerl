@@ -14,6 +14,7 @@ has lat=> (is=>'rw' , isa => 'Str');            #latitude
 has long=> (is=>'rw' , isa => 'Str');           #longitude
 has author_id=> (is=>'rw', isa=>'Str');         #author ID
 has sculp_id => (is=>'rw' , isa => 'Str');      ##sculpture ID
+has authors => (is=>'rw', isa=>'Maybe[ArrayRef]', writer=>'set_authors', reader=>'get_authors');
 
 
 
@@ -155,7 +156,7 @@ sub request_authors {
 		my $parameter = $requester->parameter;
 		my $url = $server.$parameter;
 		my $response = $requester->request("$url");
-		set_authors($response);
+		#set_authors($response);
 		return $response;
 	} else{
 		my $response = $self->authors;
