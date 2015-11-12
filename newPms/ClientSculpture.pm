@@ -133,6 +133,7 @@ sub request_auth_id {
 sub request_author {
         my $self = shift;
 		my $response = request_authors();
+		my $answer "the name received doesn't exist or it's misspelled\n";
         try {
                 my $json = decode_json($response);
                 my $name = $self->name;
@@ -143,7 +144,6 @@ sub request_author {
                         }
                 }
         } catch {
-                my $answer = "the name received doesn't exist or it's misspelled\n";
                 return $answer;
         }
 }
