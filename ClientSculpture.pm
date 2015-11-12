@@ -1,289 +1,197 @@
-#!/usr/bin/perl
 package ClientSculpture;
+use strict;
 use warnings;
 use Data::Dumper;
 use HTTP::Tiny;
 use Time::HiRes qw/sleep/;
 use JSON qw/decode_json/;
 use Moose;
+use Try::Tiny;
 
 ##ATTRIBUTES
-has name=> (is=>'rw' , isa => 'Str');
-has lat=> (is=>'rw' , isa => 'Str');
-has long=> (is=>'rw' , isa => 'Str');
-has weather=> (is=>'ro', isa=>'HashRef');
-has authorID=> (is=>'rw', isa=>'Str');
-has authorName=> (is=>'rw', isa=>'Str');
+has name=> (is=>'rw' , isa => 'Str');           #author name
+has lat=> (is=>'rw' , isa => 'Str');            #latitude
+has long=> (is=>'rw' , isa => 'Str');           #longitude
+has author_id=> (is=>'rw', isa=>'Str');         #author ID
+has sculp_id => (is=>'rw' , isa => 'Str');      ##sculpture ID
+has authors => (is=>'rw', isa=>'Maybe[ArrayRef]', writer=>'set_authors', reader=>'get_authors');
 
-##CONSTRUCTOR
-sub BUILD {
-    my $weather =request_weather();
-}
-
-##getWeather
-sub getWeather {
-    my $self = shift;
-    return $self->weather;
-}
-    
-
-sub request_author {
-        my $self= shift;
-        my $server = 'http://resistenciarte.org/api/v1/';
-        my $ping_endpoint = 'node?parameters[type]=autores';
-        my $url = $server.$ping_endpoint;
-        my $headers = { accept => 'application/json' };
-        my $attempts //= 0;
-        my $http = HTTP::Tiny->new();
-        my $response = $http->get($url, {headers => $headers});
-        
-        if($response->{success}) {
-            my $content = $response->{content};
-            my $json = decode_json($content);
-                #iterates over the $json
-                my $name = $self->name;
-                foreach my $item( @$json ) {
-                    # fields are in $item->{Year}, $item->{Quarter}, etc.
-                    if ($item->{title}=~ /(?i)$name(?i)/) {
-                        return $item->{title};
-                    }
-                }
-        }
-        
-        $attempts++;
-        my $reason = $response->{reason};
-          if($attempts > 3) {
-            warn 'Failure with request '.$reason;
-            die "Attempted to submit the URL $url more than 3 times without success";
-          }
-        my $response_code = $response->{status};
-  # we were rate limited
-  if($response_code == 429) {
-    my $sleep_time = $response->{headers}->{'retry-after'};
-    sleep($sleep_time);
-    return rest_request($url, $headers, $attempts);
-  }
-}
-
-
-##RETURNS THE LOCAL WEATHER
-sub request_weather {
-    my $self = shift;
-        my $url = 'https://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20weather.forecast%20where%20woeid%20in%20(select%20woeid%20from%20geo.places(1)%20where%20text%3D%22San%20Fernando%2C%20CHO%2C%20Argentina%22)&format=json&env=store%3A%2F%2Fdatatables.org%2Falltableswithkeys';
-        my $headers = { accept => 'application/json' };
-        my $attempts //= 0;
-        my $http = HTTP::Tiny->new();
-        my $response = $http->get($url, {headers => $headers});
-
-            if($response->{success}) {
-            my $content = $response->{content};
-            my $json = decode_json($content);
-            my $temp = $json->{query}{results}{channel}{item}{condition}{code};
-            my $text = $json->{query}{results}{channel}{item}{condition}{text};
-            my $date = $json->{query}{results}{channel}{item}{condition}{date};
-
-            my %weather = (
-                "date"=>$date,
-                "temperatura" => $temp,
-                "texto" => $text,
-             );
-                return %weather;
-         }
-
-        
-        $attempts++;
-        my $reason = $response->{reason};
-          if($attempts > 3) {
-            warn 'Failure with request '.$reason;
-            die "Attempted to submit the URL $url more than 3 times without success";
-          }
-        my $response_code = $response->{status};
-      # we were rate limited
-      if($response_code == 429) {
-        my $sleep_time = $response->{headers}->{'retry-after'};
-        sleep($sleep_time);
-        return rest_request($url, $headers, $attempts);
-      }
-}
-
+##DONE
 sub request_image {
-        my ($self,$id) = @_;
-        my $server = 'http://resistenciarte.org/api/v1/file/';
-        my $json;
-        my $url = $server.$id;
-        
-        my $headers = { accept => 'application/json' };
-        my $attempts //= 0;
-        my $http = HTTP::Tiny->new();
-        my $response = $http->get($url, {headers => $headers});
-        
-        if($response->{success}) {
-            my $content = $response->{content};
-            $json = decode_json($content);
-            #print "$_ $json{$_}\n" for (keys %json);
-            #print $json->{uri_full},"\n";
-            #return $json->{uri_full};
-        }
-        
-        $attempts++;
-        my $reason = $response->{reason};
-          if($attempts > 3) {
-            warn 'Failure with request '.$reason;
-            die "Attempted to submit the URL $url more than 3 times without success";
-          }
-        my $response_code = $response->{status};
-  # we were rate limited
-  if($response_code == 429) {
-    my $sleep_time = $response->{headers}->{'retry-after'};
-    sleep($sleep_time);
-    return rest_request($url, $headers, $attempts);
-  }
-  return $json->{uri_full};
+        my ($self, $url) = @_;
+        ##PARAMETERS
+        my $serviceCall = Requesting->new;
+        my $sculp_id = "file/".$self->sculp_id;
+        my $url_server = $serviceCall->server;
+        my $url_full = $url_server.$sculp_id;
+        ##REQUEST TO THE SERVER
+        my $content = $serviceCall->request("$url_full"); 
+        try {
+            my $decoded_json = decode_json($content); 
+            my $url_image = $decoded_json->{uri_full};
+            return $url_image;
+        } catch {
+            my $anwser = "There is not a sculpture with that id";
+            return $anwser;
+        };
 }
+
+
+##DONE
 sub request_scult_prox{
+        my $self = shift;
+        ##PARAMETERS
+        my $lat = $self->lat;
+        my $long = $self->long;
+        my $requester = Requesting->new(parameter=>'closest_nodes_by_coord?lat='.$lat.'&lon='.$long);
+        ##REQUEST TO THE SERVER
+        my $url = $requester->server.$requester->parameter;
+        my $response = $requester->request("$url");
+        ##TREATMENT
+        try {
+                my $json = decode_json($response);
+                my $count = 0;
+                my %temp;
 
-    my ($self,$lat, $long)=@_;
-    my $json;
-    
-    my $url = "http://resistenciarte.org/api/v1/closest_nodes_by_coord?lat=".$lat."&lon=".$long;
-    
-    my $headers = { accept => 'application/json' };
-    my $attempts //= 0;
-    my $http = HTTP::Tiny->new();
-    my $response = $http->get($url, {headers => $headers});
-    
-    if($response->{success}) {
-        my $content = $response->{content};
-        $json = decode_json($content);
-        
-    }
-    
-    $attempts++;
-    my $reason = $response->{reason};
-      if($attempts > 3) {
-        warn 'Failure with request '.$reason;
-        die "Attempted to submit the URL $url more than 3 times without success";
-      }
-    my $response_code = $response->{status};
-    
-    # we were rate limited
-    if($response_code == 429) {
-    my $sleep_time = $response->{headers}->{'retry-after'};
-    sleep($sleep_time);
-    return rest_request($url, $headers, $attempts);
-    }
+                foreach my $item (@$json){
+                        my $authId = "ee";#$self->request_auth_scul($item->{nid});
+                        my $auth = "ffee";#$self->request_auth_id($authId);
+                        my $image = $self->request_image($item->{nidau});
 
-    my $count = 0;
-    my %temp;
-    
-    foreach my $item (@$json){
-        my $authId = $self->request_auth_scul($item->{nid});
-        my $auth = $self->request_auth_id($authId);
-        my $image = $self->request_image($item->{nid});
+                        my @sal = ( $item->{node_title},
+                                $item->{distance},
+                                $item->{field_ubicacion}{und}[0]{value},
+                                $authId,
+                                $auth,
+                                $image
+                        );
 
-
-        my @sal = ( $item->{node_title},
-                    $item->{distance},
-                    $item->{field_ubicacion}{und}[0]{value},
-                    $authId,
-                    $auth,
-                    $image
-        );
-
-        $temp{"$count"} = \@sal;
-    }
-
-    return \%temp;
+                        $temp{"$count"} = \@sal;
+                }
+                return \%temp;
+        } catch {
+                my $answer = "there's not nearby sculptures around you\n";
+                return $answer;
+        }
 }
 
+
+##DONE
+##given a sculpture id brings info about that sculpture and the author id
 sub request_auth_scul {
-
-    #parametros
-    my ($self, $id_esc) = @_;
-    my $json;
-
-    my $url = "http://resistenciarte.org/api/v1/node/$id_esc";
-
-        
-    my $headers = { accept => 'application/json' };
-    my $attempts //= 0;
-    my $http = HTTP::Tiny->new();
-    my $response = $http->get($url, {headers => $headers});
-    
-    if($response->{success}) {
-        my $content = $response->{content};
-        $json = decode_json($content);
-        #return $json;
-    }
-    
-    $attempts++;
-    my $reason = $response->{reason};
-      if($attempts > 3) {
-        warn 'Failure with request '.$reason;
-        die "Attempted to submit the URL $url more than 3 times without success";
-      }
-    my $response_code = $response->{status};
-
-    # we were rate limited
-    if($response_code == 429) {
-        my $sleep_time = $response->{headers}->{'retry-after'};
-        sleep($sleep_time);
-        return rest_request($url, $headers, $attempts);
-    }
-
-    my $ret = $$json{field_autor}{und}[0]{target_id};
-
-    return $ret;
+        my $self = shift;
+        my $sculp_id = $self->sculp_id;
+        my $requester = Requesting->new(parameter=>'node/'."$sculp_id");
+        ##REQUEST TO THE SERVER
+        my $url = $requester->server.$requester->parameter;
+        my $content = $requester->request("$url");
+        ##TREATMENT
+        try {
+                my $json = decode_json($content);
+                my $ret = $$json{field_autor}{und}[0]{target_id};
+                if (!$ret){ 
+                	return "Invalid sculpture ID\n";
+                	}else {
+                		return $ret;
+                	}
+        } catch {
+                my $answer = "invalid sculpture ID\n";
+                return $answer;
+        }
 
 }
 
+##DONE
+##given an author ID brigns the author name
 sub request_auth_id {
+        my $self = shift;
 
-    #parametros
-    my ($self,$id) = @_;
-    my $authorsjson;# =$self->authorsjson;
-    my $ret;
-    my $json;
-
-    #if (!$authorsjson){
-        my $url = "http://resistenciarte.org/api/v1/node?parameters[type]=autores";   
-        my $headers = { accept => 'application/json' };
-        my $attempts //= 0;
-        my $http = HTTP::Tiny->new();
-        my $response = $http->get($url, {headers => $headers});
-        if($response->{success}) {
-            my $content = $response->{content};
-            $authorsjson = decode_json($content);
-            #$self->authorsjson = $authorsjson;
+    	##PARAMETERS
+        my $author_id = $self->author_id;
+		my $content = request_authors();
+		my $ret = "invalid author ID\n";
+        ##TREATMENT
+        try {
+                my $json = decode_json($content);
+                foreach my $item (@$json){
+                        if ($author_id == $item->{nid}){
+                                $ret = $item->{title};
+                        }
+                }
+                return $ret;
+        } catch {
+                
+                return $ret;
         }
-    
-    
-        $attempts++;
-        my $reason = $response->{reason};
-          if($attempts > 3) {
-            warn 'Failure with request '.$reason;
-            die "Attempted to submit the URL $url more than 3 times without success";
-          }
-        my $response_code = $response->{status};
-      # we were rate limited
-        if($response_code == 429) {
-            my $sleep_time = $response->{headers}->{'retry-after'};
-            sleep($sleep_time);
-            #return rest_request($url, $headers, $attempts);
-        }
-    #}
-
-    foreach my $item (@$authorsjson){
-        if ($id == $item->{nid}){
-            $ret = $item->{title};
-        }
-    }
-    
-    return $ret;
 
 }
+##DONE
+sub request_author {
+        my $self = shift;
+		my $response = request_authors();
+        try {
+                my $json = decode_json($response);
+                my $name = $self->name;
+                ##TREATMENT
+                foreach my $item( @$json ) {
+                        if ($item->{title}=~ /(?i)$name(?i)/) {
+                                return $item->{title};
+                        }
+                }
+        } catch {
+                my $answer = "the name received doesn't exist or it's misspelled\n";
+                return $answer;
+        }
+}
+
+sub request_authors {
+	my $self = shift;
+	if (!(my $authors=get_authors())) {
+		my $requester = Requesting->new(parameter=>'node?parameters[type]=autores');
+		my $server = $requester->server;
+		my $parameter = $requester->parameter;
+		my $url = $server.$parameter;
+		my $response = $requester->request("$url");
+		#set_authors($response);
+		return $response;
+	} else{
+		my $response = $self->authors;
+		return $response;
+	}
+}
+
+
+sub all_sculpture{
+    my $self = shift;
+    ##PARAMETERS
+    my $author_id = $self->author_id;
+    
+    my $requester = Requesting->new(parameter=>'node?parameters[type]=escultura');
+    my $url = $requester->server.$requester->parameter;
+    my $ret = "undef";
+    ##REQUEST TO THE SERVER
+    my $content = $requester->request("$url");
+    ##TREATMENT
+    try {
+    my $arrayref = decode_json $content;
+        foreach my $item( @$arrayref ) { 
+            # fields are in $item->{Year}, $item->{Quarter}, etc.
+            
+            $self->sculp_id($item->{nid});
+            
+            my $url_picture= $self->request_image();
+            print "========================================\n";
+            print "Nombre:", $item->{title},"\n";   
+            print "Imagen: $url_picture\n";      
+            print "========================================\n";
+        }  
+    } catch {
+        my $answer = "invalid author ID\n";
+        print $answer;
+    }
+         
+}
+
 
 1;
-
-    #Status API Training Shop Blog About Pricing 
 
