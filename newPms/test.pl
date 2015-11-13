@@ -61,6 +61,18 @@ $menu1 = Menu->new(
     choices => \@menu1_choices,
 );
 
+sub printHash {
+        my ($self, %hash) = @_;
+        for my $sculpture (keys %hash){
+                for my $i (0 .. $#{ $hash{$sculpture}}) {
+                        print "$i = $hash{$sculpture}[$i]";
+                }
+        print "\n";
+        }
+        
+}
+
+
 
 # Print menu1
 $menu1->print();
