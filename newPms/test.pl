@@ -44,10 +44,14 @@ my @menu1_choices = (
                 my $long = <STDIN>;
                 chomp ($long);
                 my $clientSculpture = ClientSculpture->new(lat=>"$lat", long=>"$long");
-                my %hash = $clientSculpture->request_scult_prox();
-                print Dumper(\%hash)."\n";
+                my $hash = $clientSculpture->request_scult_prox();
+                if (ref($hash) eq "HASH"){
+                  printHash(%$hash);
+                } else { 
+                  print $hash."\n";
+                }
                 $menu1->print();
-        }},
+    }},
 );
 
 
