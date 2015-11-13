@@ -40,13 +40,12 @@ sub request_image {
         };
 }
 
-
 ##DONE
 sub request_scult_prox{
         my $self = shift;
         ##PARAMETERS
-        my $lat = $self->lat;
-        my $long = $self->long;
+        my $lat = '-27.454528';#$self->lat;
+        my $long = '-58.976896';#$self->long;
         my $requester = Requesting->new(parameter=>'closest_nodes_by_coord?lat='.$lat.'&lon='.$long);
         ##REQUEST TO THE SERVER
         my $url = $requester->server.$requester->parameter;
@@ -58,27 +57,25 @@ sub request_scult_prox{
                 my %temp;
 
                 foreach my $item (@$json){
-                        my $authId = "ee";#$self->request_auth_scul($item->{nid});
-                        my $auth = "ffee";#$self->request_auth_id($authId);
-                        my $image = $self->request_image($item->{nidau});
-
-                        my @sal = ( $item->{node_title},
+                        $self->sculp_id($item->{nid});
+                        my $authId = $self->request_auth_scul();
+                        $self->author_id($authId);
+                        my $auth = $self->request_auth_id();
+                        $self->sculp_id($item->{nid});
+                        my $image =$self->request_image();
+                        %temp->{$count} = [$item->{node_title},
                                 $item->{distance},
                                 $item->{field_ubicacion}{und}[0]{value},
-                                $authId,
                                 $auth,
                                 $image
-                        );
-
-                        $temp{"$count"} = \@sal;
+                        ];
+                        $count++;
                 }
                 return \%temp;
         } catch {
-                my $answer = "there's not nearby sculptures around you\n";
-                return $answer;
+                return "There's not nearby sculptures around you\n";
         }
 }
-
 
 ##DONE
 ##given a sculpture id brings info about that sculpture and the author id
