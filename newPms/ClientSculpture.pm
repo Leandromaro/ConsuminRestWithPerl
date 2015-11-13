@@ -132,21 +132,23 @@ sub request_auth_id {
 ##DONE
 sub request_author {
         my $self = shift;
-		my $response = request_authors();
-		my $answer "the name received doesn't exist or it's misspelled\n";
-        try {
+                my $response = request_authors();
                 my $json = decode_json($response);
                 my $name = $self->name;
                 ##TREATMENT
-                foreach my $item( @$json ) {
-                        if ($item->{title}=~ /(?i)$name(?i)/) {
-                                return $item->{title};
+                if ($name ne ''){
+                        foreach my $item( @$json ) {
+                                if ($item->{title}=~ /(?i)$name(?i)/ && $item->{title} ne '') {
+                                        return $item->{title};
+                                }
                         }
+                        return "Author does not exist or it's very misspelled\n";
+                } else {
+                        return "No name inserted\n";
                 }
-        } catch {
-                return $answer;
-        }
+
 }
+
 
 sub request_authors {
 	my $self = shift;
