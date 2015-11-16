@@ -19,13 +19,13 @@ my @menu1_choices = (
                     print Dumper(\%hash),"\n";
                     $menu1->print();
        }},
-    { text => 'All the Sculpture',
+    { text => 'All the sculpture images',
       code => sub { 
                   my $clientSculpture = ClientSculpture->new;
                   my %hash = $clientSculpture->all_sculpture();
                   $menu1->print();
       }},
-    { text => 'Check if an author exists',
+    { text => 'Check if an author exists by name',
       code => sub {
                 print "Please insert the author name\n";
                 my $name = <>;
@@ -35,7 +35,7 @@ my @menu1_choices = (
                 print  "full name: ".$fullName."\n";
                 $menu1->print();
       }},
-    { text => 'Get nearby sculptures',
+    { text => 'Get nearby sculptures, using latitude and longitude',
         code => sub {
                 print "Insert a latitude value\n";
                 my $lat = <STDIN>;
